@@ -1,10 +1,10 @@
 /**
  * DOT adapter for `@arki/env`.
  *
- * Wraps `defineEnv()` as a `DotPip` so a DOT app can validate its
+ * Wraps `defineEnv()` as a DOT pip so a DOT app can validate its
  * environment alongside any other services. The pip is sync (env
  * validation is sync), so the `boot` hook returns the validated env
- * object synchronously through the standard `services` channel.
+ * object synchronously through the standard provides channel.
  *
  * @example
  * ```ts
@@ -19,24 +19,32 @@
  * console.log(app.services.env.PORT); // number, typed.
  * ```
  *
+ * To mount a second env scope in the same app, rename the published wire
+ * key at the mount site:
+ *
+ * ```ts
+ * import { rename } from '@arki/dot';
+ *
+ * .use(env({ schema: appSchema }))
+ * .use(rename(env({ schema: publicSchema }), { env: 'publicEnv' }, 'public-env'))
+ * ```
+ *
  * The `@arki/dot` package is an OPTIONAL peer of `@arki/env`. Importing
  * this adapter without `@arki/dot` installed will fail at module load —
  * that is intentional: the adapter only makes sense in a DOT app.
  */
-import { defineDotPip } from '@arki/dot/pip';
+import { pip } from '@arki/dot/pip';
 import { defineEnv } from './core/define-env.js';
 /**
  * Build a DOT pip that validates and publishes a typed `env` service.
  *
  * @param options - Schema + optional config.
- * @returns A `DotPip` that registers an `env`-kind service.
+ * @returns A pip that publishes `services.env`.
  */
 export function env(options) {
-    const name = options.name ?? 'env';
-    return defineDotPip({
-        name,
+    return pip({
+        name: 'env',
         version: '0.1.0',
-        provides: ['env'],
         configure(ctx) {
             ctx.registerService('env', 'env');
         },
@@ -52,7 +60,7 @@ export function env(options) {
             // The runtime guarantee comes from Zod-side validation inside
             // `defineEnv`. No `any` involved — the cast is type-only.
             const envObject = validated;
-            return { services: { env: envObject } };
+            return { env: envObject };
         },
     });
 }

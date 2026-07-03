@@ -2,7 +2,7 @@ export declare const contracts: {
     json: <T extends import("zod").ZodType>(schema: T) => import("zod").ZodPipe<import("zod").ZodString, import("zod").ZodTransform<Awaited<import("zod").infer<T>>, string>>;
     csvArray: <T extends import("zod").ZodType>(itemSchema: T) => import("zod").ZodPipe<import("zod").ZodTransform<unknown, unknown>, import("zod").ZodArray<T>>;
     csvSet: <T extends import("zod").ZodType>(itemSchema: T) => import("zod").ZodPipe<import("zod").ZodTransform<unknown, unknown>, import("zod").ZodArray<T>>;
-    url: (defaultValue?: string) => import("zod").ZodString | import("zod").ZodDefault<import("zod").ZodString>;
+    url: (defaultValue?: string) => import("zod").ZodURL | import("zod").ZodDefault<import("zod").ZodURL>;
     databaseUrl: () => import("zod").ZodURL;
     redisUrl: () => import("zod").ZodURL;
     string: (defaultValue?: string) => import("zod").ZodString | import("zod").ZodDefault<import("zod").ZodString>;

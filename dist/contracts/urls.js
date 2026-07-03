@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const urlContracts = {
     url: (defaultValue) => {
-        const schema = z.string().url();
+        const schema = z.url();
         return defaultValue ? schema.default(defaultValue) : schema;
     },
     databaseUrl: () => z
