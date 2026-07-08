@@ -1,8 +1,8 @@
 /**
  * DOT adapter for `@arki/env`.
  *
- * Wraps `defineEnv()` as a DOT pip so a DOT app can validate its
- * environment alongside any other services. The pip is sync (env
+ * Wraps `defineEnv()` as a DOT plugin so a DOT app can validate its
+ * environment alongside any other services. The plugin is sync (env
  * validation is sync), so the `boot` hook returns the validated env
  * object synchronously through the standard provides channel.
  *
@@ -33,16 +33,16 @@
  * this adapter without `@arki/dot` installed will fail at module load —
  * that is intentional: the adapter only makes sense in a DOT app.
  */
-import { pip } from '@arki/dot/pip';
+import { plugin } from '@arki/dot/plugin';
 import { defineEnv } from './core/define-env.js';
 /**
- * Build a DOT pip that validates and publishes a typed `env` service.
+ * Build a DOT plugin that validates and publishes a typed `env` service.
  *
  * @param options - Schema + optional config.
- * @returns A pip that publishes `services.env`.
+ * @returns A plugin that publishes `services.env`.
  */
 export function env(options) {
-    return pip({
+    return plugin({
         name: 'env',
         version: '0.1.0',
         configure(ctx) {
