@@ -1,6 +1,6 @@
-import { createEnv } from '@t3-oss/env-core';
 import type { CreateEnv, DefaultCombinedSchema } from '@t3-oss/env-core';
 import type { ZodType } from 'zod';
+import { createEnv } from '@t3-oss/env-core';
 /** The issue shape t3-oss hands to `onValidationError`, derived so it stays in sync with the lib. */
 type ValidationIssues = Parameters<NonNullable<Parameters<typeof createEnv>[0]['onValidationError']>>[0];
 /**
@@ -13,7 +13,7 @@ type ValidationIssues = Parameters<NonNullable<Parameters<typeof createEnv>[0]['
  * client keys (and only client keys) carry the prefix. Widening it to `string` would make every
  * server key collapse to a type-level `ErrorMessage`, so the prefix must stay a literal.
  */
-export declare function defineEnv<TServer extends Record<string, ZodType>, TClient extends Record<string, ZodType> = NonNullable<unknown>, TShared extends Record<string, ZodType> = NonNullable<unknown>, const TPrefix extends string = '', const TExtends extends Array<Record<string, unknown>> = []>(config: {
+export declare function defineEnv<TServer extends Record<string, ZodType>, TClient extends Record<string, ZodType> = NonNullable<unknown>, TShared extends Record<string, ZodType> = NonNullable<unknown>, const TPrefix extends string = '', const TExtends extends Record<string, unknown>[] = []>(config: {
     /**
      * Label shown in validation-error logs, e.g. `'@acme/backend'`. Without it a misconfigured
      * deploy logs a bare "Invalid environment variables" with no hint which env failed — exactly the

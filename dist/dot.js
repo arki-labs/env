@@ -51,9 +51,7 @@ export function env(options) {
         boot() {
             const validated = defineEnv({
                 server: options.schema,
-                options: options.skipValidation !== undefined
-                    ? { skipValidation: options.skipValidation }
-                    : undefined,
+                options: options.skipValidation === undefined ? undefined : { skipValidation: options.skipValidation },
             });
             // `defineEnv` returns a Proxy from `@t3-oss/env-core`; we narrow it
             // to the schema-derived shape so downstream typing flows through.

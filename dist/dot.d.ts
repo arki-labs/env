@@ -33,8 +33,8 @@
  * this adapter without `@arki/dot` installed will fail at module load —
  * that is intentional: the adapter only makes sense in a DOT app.
  */
-import { type EmptyShape, type Plugin } from '@arki/dot/plugin';
 import type { ZodType } from 'zod';
+import type { EmptyShape, Plugin } from '@arki/dot/plugin';
 /**
  * Options for the env DOT adapter.
  *

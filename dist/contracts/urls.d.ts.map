@@ -1,1 +1,1 @@
-{"version":3,"file":"urls.d.ts","sourceRoot":"","sources":["../../src/contracts/urls.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,eAAO,MAAM,YAAY;yBACF,MAAM;;;CAoB5B,CAAC"}
+{"version":3,"file":"urls.d.ts","sourceRoot":"","sources":["../../src/contracts/urls.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,eAAO,MAAM,YAAY;IACvB,GAAG,kBAAkB,MAAM;IAK3B,WAAW;IAQX,QAAQ;CAOT,CAAC"}
