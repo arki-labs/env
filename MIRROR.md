@@ -1,6 +1,6 @@
 # @arki/env
 
-Published version: **0.0.9**
+Published version: **0.0.11**
 
 This repository is a **read-only mirror** of the [@arki/env](https://www.npmjs.com/package/@arki/env) npm package.
 
