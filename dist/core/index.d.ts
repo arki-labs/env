@@ -1,3 +1,8 @@
-export { defineEnv } from './define-env.js';
-export { contracts } from '../contracts/index.js';
+/** `defineEnv()` plus `secret()`, `reveal()` and `Redacted` for typed, lazily validated environments. */
+export { defineEnv, formatIssues } from './define-env.js';
+export { InvalidEnvironment } from './errors.js';
+export { isSecretSchema, Redacted, reveal, secret, SECRET_SCHEMA } from './secret.js';
+export { describeEnv } from './describe.js';
+export type { EnvDescription, EnvKeyDescription } from './describe.js';
+export { presets } from '../presets/index.js';
 //# sourceMappingURL=index.d.ts.map

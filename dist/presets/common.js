@@ -1,0 +1,19 @@
+import { z } from 'zod';
+export const commonPresets = {
+    string: (defaultValue) => {
+        const schema = z.string();
+        return defaultValue === undefined ? schema : schema.default(defaultValue);
+    },
+    number: (defaultValue) => {
+        const schema = z.coerce.number();
+        return defaultValue === undefined ? schema : schema.default(defaultValue);
+    },
+    port: (defaultValue = 3000) => z.coerce.number().min(1, 'Port must be at least 1').max(65_535, 'Port must be at most 65535').default(defaultValue),
+    nodeEnv: () => z.enum(['development', 'production', 'test']).default('development'),
+    boolean: (defaultValue = false) => z
+        .enum(['true', 'false', '1', '0'])
+        .default(defaultValue ? 'true' : 'false')
+        .transform(val => val === 'true' || val === '1'),
+    logLevel: (defaultValue = 'info') => z.enum(['debug', 'info', 'warn', 'error']).default(defaultValue),
+};
+//# sourceMappingURL=common.js.map

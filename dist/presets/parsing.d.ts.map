@@ -1,0 +1,1 @@
+{"version":3,"file":"parsing.d.ts","sourceRoot":"","sources":["../../src/presets/parsing.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,eAAO,MAAM,YAAY;IACvB,IAAI,GAAG,CAAC,SAAS,CAAC,CAAC,OAAO,UAAU,CAAC;IAarC,QAAQ,GAAG,CAAC,SAAS,CAAC,CAAC,OAAO,cAAc,CAAC;IAM7C,MAAM,GAAG,CAAC,SAAS,CAAC,CAAC,OAAO,cAAc,CAAC;CAK5C,CAAC"}

@@ -1,6 +1,29 @@
 import type { CreateEnv, DefaultCombinedSchema } from '@t3-oss/env-core';
-import type { ZodType } from 'zod';
 import { createEnv } from '@t3-oss/env-core';
+
+import type { StandardSchemaV1 } from '@arki/schema';
+import { InvalidInput, orThrow, UnexpectedFailure } from '@arki/failure';
+import { parse, pathOf } from '@arki/schema';
+
+import { registerEnvDescription } from './describe.js';
+import { InvalidEnvironment } from './errors.js';
+
+/**
+ * The process environment, or `undefined` on engines with no `process` (Hermes, browsers, Deno without
+ * Node compat). Reads through `globalThis` so a missing global is not a ReferenceError. Called only when
+ * the env is first read, never at import.
+ */
+export function processEnv(): Record<string, string | undefined> | undefined {
+  // Typed as optional on purpose: the Node typings say `process` always exists, Hermes says otherwise.
+  const scope: { process?: { env: Record<string, string | undefined> } } = globalThis;
+  return scope.process?.env;
+}
+
+/** The prefix of a value encrypted in a dotenvx-format env file (`@arki/env/node`). */
+export const ENCRYPTED_PREFIX = 'encrypted:';
+
+const STILL_ENCRYPTED_MESSAGE =
+  'still encrypted: start the process with `dot env run -- <cmd>`, or import `@arki/env/node/register` first';
 
 /** The issue shape t3-oss hands to `onValidationError`, derived so it stays in sync with the lib. */
 type ValidationIssues = Parameters<NonNullable<Parameters<typeof createEnv>[0]['onValidationError']>>[0];
@@ -10,12 +33,10 @@ type ValidationIssues = Parameters<NonNullable<Parameters<typeof createEnv>[0]['
  * logs `issues` as a raw object, which platforms like Coolify collapse to `[Object]` — so the var
  * that actually failed never reaches the logs. A flat `  path: message` list survives transport.
  */
-function formatIssues(name: string | undefined, issues: ValidationIssues): string {
+export function formatIssues(name: string | undefined, issues: ValidationIssues): string {
   const label = name ? `[${name}] ` : '';
   const lines = issues.map(issue => {
-    const path = (issue.path ?? [])
-      .map(seg => (typeof seg === 'object' && seg !== null && 'key' in seg ? String(seg.key) : String(seg)))
-      .join('.');
+    const path = pathOf(issue).map(String).join('.');
     return `  ${path || '(root)'}: ${issue.message}`;
   });
   return `❌ ${label}Invalid environment variables:\n${lines.join('\n')}`;
@@ -24,17 +45,22 @@ function formatIssues(name: string | undefined, issues: ValidationIssues): strin
 /**
  * Thin, type-preserving wrapper over `@t3-oss/env-core`'s `createEnv`. Generic over the server,
  * client, shared and composed schemas so the parsed env keeps its exact inferred types — the wrapper
- * adds the ARKI defaults (auto `runtimeEnv`, prod-safe `skipValidation`, a legible labelled error
- * handler) without widening any value to `unknown`.
+ * adds the ARKI defaults (auto `runtimeEnv`, validation on in every environment, a legible labelled
+ * error handler) without widening any value to `unknown`.
+ *
+ * Every schema is a Standard Schema (Zod, Valibot, ArkType, or a hand-written `~standard` object); each
+ * value's type is the schema's OUTPUT, so defaults and coercions in the caller's schemas still apply.
+ * Validation is synchronous: a schema whose `validate` returns a Promise or throws makes the first read
+ * throw `UnexpectedFailure` with the canonical schema failure, never a validation error.
  *
  * `TPrefix` is kept as a string-literal generic on purpose: `createEnv` uses it to enforce that
  * client keys (and only client keys) carry the prefix. Widening it to `string` would make every
  * server key collapse to a type-level `ErrorMessage`, so the prefix must stay a literal.
  */
 export function defineEnv<
-  TServer extends Record<string, ZodType>,
-  TClient extends Record<string, ZodType> = NonNullable<unknown>,
-  TShared extends Record<string, ZodType> = NonNullable<unknown>,
+  TServer extends Record<string, StandardSchemaV1>,
+  TClient extends Record<string, StandardSchemaV1> = NonNullable<unknown>,
+  TShared extends Record<string, StandardSchemaV1> = NonNullable<unknown>,
   const TPrefix extends string = '',
   const TExtends extends Record<string, unknown>[] = [],
 >(config: {
@@ -64,6 +90,12 @@ export function defineEnv<
    */
   runtimeEnv?: Record<string, string | boolean | number | undefined>;
   options?: {
+    /**
+     * `true` skips schema validation: values pass through raw. Default: validate on the first read,
+     * in every environment, unless the process sets `SKIP_ENV_VALIDATION=1` (exactly `1`). That
+     * variable is the only implicit opt-out, meant for Docker build stages that prerender without
+     * secrets. `CI`, lint and `NODE_ENV` never skip.
+     */
     skipValidation?: boolean;
     /**
      * Treat empty-string env values as `undefined` so defaults apply (e.g. `PORT=` in `.env`, or a
@@ -84,8 +116,11 @@ export function defineEnv<
   // consumed (boot, a request, a job). This is the same import/observe split
   // drizzle tables have: define everywhere, observe only at use.
   const build = (): Built<Result> => {
-    const skipValidation =
-      config.options?.skipValidation ?? (!!process.env.CI || process.env.NODE_ENV !== 'development');
+    // Validate everywhere the app runs, production included. The only implicit opt-out is the
+    // purpose-named SKIP_ENV_VALIDATION=1 (Docker build stages without secrets). Ambient variables
+    // like CI or the npm script name must never turn validation off: that would boot production on
+    // an unchecked config.
+    const skipValidation = config.options?.skipValidation ?? processEnv()?.SKIP_ENV_VALIDATION === '1';
 
     // Use the caller's explicit runtimeEnv when supplied (Vite client vars via import.meta.env, or
     // fallback aliases). Otherwise auto-build from every declared key (server + client + shared);
@@ -95,14 +130,15 @@ export function defineEnv<
       runtimeEnv = config.runtimeEnv;
     } else {
       runtimeEnv = {};
+      const source = processEnv();
       for (const key of Object.keys(config.server)) {
-        runtimeEnv[key] = process.env[key];
+        runtimeEnv[key] = source?.[key];
       }
       for (const key of Object.keys(config.client ?? {})) {
-        runtimeEnv[key] = process.env[key];
+        runtimeEnv[key] = source?.[key];
       }
       for (const key of Object.keys(config.shared ?? {})) {
-        runtimeEnv[key] = process.env[key];
+        runtimeEnv[key] = source?.[key];
       }
     }
 
@@ -111,8 +147,19 @@ export function defineEnv<
       ((issues: ValidationIssues): never => {
         const message = formatIssues(config.name, issues);
         console.error(message);
-        throw new Error(message);
+        // A configuration fault at boot: a typed failure, so a catcher can match on the code.
+        throw new UnexpectedFailure(InvalidEnvironment({ report: message }));
       });
+
+    // A value that is still `encrypted:` means the env files were not loaded (Bun auto-loads them
+    // as they are, ciphertext included). A string schema would accept it, so refuse it here, by name.
+    if (!skipValidation) {
+      const stillEncrypted = Object.keys(runtimeEnv).filter(key => {
+        const value = runtimeEnv[key];
+        return typeof value === 'string' && value.startsWith(ENCRYPTED_PREFIX);
+      });
+      if (stillEncrypted.length > 0) onValidationError(stillEncrypted.map(key => ({ message: STILL_ENCRYPTED_MESSAGE, path: [key] })));
+    }
 
     // `createEnv`'s `server`/`client` params are conditional on `clientPrefix` being a *concrete*
     // string literal; inside a generic wrapper `TPrefix` is abstract, so the body cannot be verified
@@ -121,10 +168,10 @@ export function defineEnv<
     // caller's `server`/`client`/`extends` are fully type-checked against `TServer`/`TClient`/`TExtends`
     // at the call site. This is the only seam where types are asserted — value types are never widened.
     const options = {
-      shared: config.shared ?? {},
+      shared: syncSchemas(config.shared),
       extends: config.extends,
-      server: config.server,
-      client: config.client ?? {},
+      server: syncSchemas(config.server),
+      client: syncSchemas(config.client),
       clientPrefix: config.clientPrefix ?? '',
       runtimeEnv,
       skipValidation,
@@ -142,7 +189,41 @@ export function defineEnv<
     return { env, isPrivate };
   };
 
-  return lazyEnv(build);
+  const env = lazyEnv(build);
+  registerEnvDescription(env, {
+    ...(config.name === undefined ? {} : { name: config.name }),
+    server: config.server,
+    ...(config.client === undefined ? {} : { client: config.client }),
+    ...(config.shared === undefined ? {} : { shared: config.shared }),
+    ...(config.extends === undefined ? {} : { extends: config.extends }),
+  });
+  return env;
+}
+
+/**
+ * The caller's schemas, each run through `parse` before t3 sees it. t3 would let a throwing validator's
+ * raw error escape and report an async one with its own error (leaving a rejection unhandled). Here both
+ * fail as `UnexpectedFailure` (canonical validator defect with its private cause, or async mismatch), and bad values still reach t3 as issues.
+ */
+function syncSchemas(schemas: Record<string, StandardSchemaV1> | undefined): Record<string, StandardSchemaV1> {
+  const wrapped: Record<string, StandardSchemaV1> = {};
+  for (const [key, schema] of Object.entries(schemas ?? {})) wrapped[key] = syncSchema(schema);
+  return wrapped;
+}
+
+/** Same `version`, `vendor` and `types` as `schema`; only `validate` changes. */
+function syncSchema<Input, Output>(schema: StandardSchemaV1<Input, Output>): StandardSchemaV1<Input, Output> {
+  return {
+    '~standard': {
+      ...schema['~standard'],
+      validate: value => {
+        const result = parse(schema, value);
+        if (InvalidInput.is(result)) return { issues: result.data.issues };
+        // env-core expects validator defects to throw; bridge that foreign contract explicitly.
+        return { value: orThrow(result) };
+      },
+    },
+  };
 }
 
 /** The built env, and whether its reads may be copied (it is private and returns stored values). */

@@ -1,0 +1,128 @@
+[
+  {
+    "code": "env.cancelled",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "Loading was cancelled.",
+    "fix": "Handle cancellation at the calling boundary.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:108"
+  },
+  {
+    "code": "env.deadline",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "The aggregate load deadline elapsed.",
+    "fix": "Increase the budget or restore provider responsiveness.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:117"
+  },
+  {
+    "code": "env.decryption_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "Ciphertext authentication or decoding failed.",
+    "fix": "Restore the correct private key or reset the damaged value.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:27"
+  },
+  {
+    "code": "env.encryption_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "Cryptographic encryption failed.",
+    "fix": "Verify the public key and runtime crypto support.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:18"
+  },
+  {
+    "code": "env.file_read_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "An env file could not be read.",
+    "fix": "Check the path, file type and access permissions.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:45"
+  },
+  {
+    "code": "env.file_write_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "An env file could not be replaced.",
+    "fix": "Check disk space and parent-directory permissions.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:55"
+  },
+  {
+    "code": "env.files_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "One or more env entries could not be loaded. Public data excludes values and raw causes.",
+    "fix": "Address each named problem before starting the app.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:142"
+  },
+  {
+    "code": "env.invalid_environment",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "The process environment does not match the schema, so the app must not boot.",
+    "fix": "Set or correct the variables listed in the report, then start the app again.",
+    "verify": "bun run test -- src/core/define-env.test.ts",
+    "source": "src/core/errors.ts:9"
+  },
+  {
+    "code": "env.key_generation_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "The runtime could not generate a keypair.",
+    "fix": "Restore runtime crypto support.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:36"
+  },
+  {
+    "code": "env.missing_private_key",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "No private key is available.",
+    "fix": "Restore the environment key from its backup.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:74"
+  },
+  {
+    "code": "env.missing_public_key",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "The target file has no public key.",
+    "fix": "Initialize the file before encrypting values.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:65"
+  },
+  {
+    "code": "env.reference_failed",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "A secret provider rejected a read.",
+    "fix": "Check the provider CLI installation, login and reference.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:98"
+  },
+  {
+    "code": "env.rotation_incomplete",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "Rotation stopped after its recovery keys were saved.",
+    "fix": "Keep the staged key file and retry rotation.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:83"
+  },
+  {
+    "code": "env.unrepresentable_value",
+    "package": "@arki/env",
+    "kind": "failure",
+    "what": "A dotenv value has no lossless quoting.",
+    "fix": "Use encryption or a value supported by dotenv quoting.",
+    "verify": "bun run test",
+    "source": "src/node/errors.ts:9"
+  }
+]

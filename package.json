@@ -1,7 +1,7 @@
 {
   "name": "@arki/env",
-  "version": "0.0.11",
-  "description": "Type-safe environment variable parsing for ARKI — defineEnv() built on @t3-oss/env-core with Zod contracts for common variable shapes.",
+  "version": "0.2.0",
+  "description": "Type-safe environment variable parsing for ARKI — defineEnv() built on @t3-oss/env-core with Zod presets for common variable shapes.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,7 +21,10 @@
     "config"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/node/register.js",
+    "./src/node/register.ts"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -33,15 +36,20 @@
       "import": "./dist/core/index.js",
       "default": "./dist/core/index.js"
     },
-    "./contracts": {
-      "types": "./dist/contracts/index.d.ts",
-      "import": "./dist/contracts/index.js",
-      "default": "./dist/contracts/index.js"
+    "./presets": {
+      "types": "./dist/presets/index.d.ts",
+      "import": "./dist/presets/index.js",
+      "default": "./dist/presets/index.js"
     },
-    "./dot": {
-      "types": "./dist/dot.d.ts",
-      "import": "./dist/dot.js",
-      "default": "./dist/dot.js"
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js",
+      "default": "./dist/node/index.js"
+    },
+    "./node/register": {
+      "types": "./dist/node/register.d.ts",
+      "import": "./dist/node/register.js",
+      "default": "./dist/node/register.js"
     },
     "./package.json": "./package.json"
   },
@@ -55,20 +63,19 @@
     "!src/**/__tests__/**",
     "README.md",
     "LICENSE",
+    "CHANGELOG.md",
+    "llms.txt",
+    "docs/agent-guide.md",
+    "docs/upgrades/**",
     "package.json"
   ],
   "dependencies": {
-    "@arki/ts": "0.0.3",
+    "@arki/failure": "0.3.0",
+    "@arki/schema": "0.3.0",
+    "@opentelemetry/api": "^1.9.1",
     "@t3-oss/env-core": "^0.13.11",
+    "eciesjs": "^0.5.0",
     "zod": "4.6.5"
-  },
-  "peerDependencies": {
-    "@arki/dot": "^0.6.1"
-  },
-  "peerDependenciesMeta": {
-    "@arki/dot": {
-      "optional": true
-    }
   },
   "publishConfig": {
     "access": "public"
